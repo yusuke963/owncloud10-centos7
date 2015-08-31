@@ -56,7 +56,7 @@
 
   - name: Install LAMP etc packages
   # その他パッケージをインストール。
-    yum: name="{{ item }}" state=present enablerepo=remi
+    yum: name="{{ item }}" state=present enablerepo=remi,epel
     with_items:
       - php
       - php-devel
