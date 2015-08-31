@@ -1,0 +1,214 @@
+- hosts: localhost
+  connection: local
+  remote_user: root
+  sudo: yes
+
+  vars:
+  # ユーザ名とパスワードは変更可能です。
+   mysql_db_user: oc_dbadmin
+   mysql_db_password: owncloud
+   php_timezone: Asia/Tokyo
+   path_document_root: /var/www/html/owncloud
+
+  tasks:
+  - name: OS timezone to JST
+   # OSのタイムゾーンをJSTに変更。
+    shell: cp -p  /usr/share/zoneinfo/Japan /etc/localtime
+
+  - name: Install EPEL and Remi repository
+  # EPEL/Remiのレポジトリをインストールする
+    yum: name={{ item }}
+    with_items:
+      - http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+      - http://rpms.famillecollet.com/enterprise/remi-release-6.rpm
+
+  - name: yum repo enabled=0
+  # 明示的に指定したいのでenabledは全て0にする
+    replace: dest=/etc/yum.repos.d/{{ item }} regexp="enabled *= *1" replace="enabled=0"
+    with_items:
+      - epel.repo
+      - remi.repo
+      
+  - name: Install ownCloud reopsitory
+  #CentOS6.x用ownCloudレポジトリのインストール。
+    get_url: url=http://download.opensuse.org/repositories/isv:/ownCloud:/community/CentOS_CentOS-6/isv:ownCloud:community.repo dest=/etc/yum.repos.d/
+  
+  - name: Uninstall OLD MySQL packages
+  # 古いMySQLをアンインストール。
+    yum: name=mysql-* state=absent
+
+  - name: Uninstall OLD PHP packages
+  # 古いPHPパッケージをアンインストール。
+    yum: name="{{ item }}" state=absent
+    with_items:
+      - php
+      - php-*
+
+  - name: Install LAMP packages
+  # LAMPパッケージをインストール。
+    yum: name="{{ item }}" state=present enablerepo=remi
+    with_items:
+      - install httpd-devel
+      - mod_ssl
+      - php
+      - php-devel
+      - php-pdo
+      - php-mysql
+      - php-mbstring
+      - php-mcrypt
+      - php-gd
+      - php-pear
+      - php-pear-DB
+      - php-pear-Auth-*
+      - php-pecl-apc-devel
+      - zlib-devel
+
+  - name: Install MySQL5.5
+  # MySQL5.5をインストール。
+    yum: pkg={{ item }} state=present enablerepo=remi,epel
+    with_items:
+      - mysql
+      - mysql-server
+      - mysql-devel
+      - MySQL-python
+
+  - name: Install Memcached
+  # Memcachedをインストール。
+    yum: pkg={{ item }} state=present enablerepo=remi
+    with_items:
+      - memcached-devel
+      - php-pecl-memcache
+
+    
+  - name: Change php setting 
+  # 以下、PHPの設定変更
+  # expose_phpの変更
+    replace: >-
+       dest=/etc/php.ini
+       regexp="^expose_php = On"
+       replace="expose_php = Off"
+
+  # PHP default_charsetの変更
+    replace: >-
+       dest=/etc/php.ini
+       regexp=";default_charset ="
+       replace="default_charset ="
+
+  # phpタイムゾーンの変更
+    replace: >-
+      dest=/etc/php.ini
+      regexp="^;date\.timezone ="
+      replace="date.timezone = {{ php_timezone }}"
+
+  # PHPエラーログの出力先作成
+    file: dest=/var/log/php owner=apache state=directory
+    replace: >-
+       dest=/etc/php.ini
+       regexp=";error_log = php_errors.log"
+       replace="error_log = "/var/log/php/php_errors.log"
+       
+  # phpログフォーマットの変更
+    replace: >-
+      dest=/etc/php.ini
+      regexp="error_reporting = E_ALL & ~E_DEPRECATED & ~E_STRICT"
+      replace="error_reporting = E_ALL & ~E_NOTICE"
+
+  - name: Change Memcached setting
+  # Memcacheの設定変更
+    replace: >-
+       dest=/etc/php.d/memcache.ini
+       regexp=";session.save_handler=memcache"
+       replace="session.save_handler=memcache"
+    
+    replace: >-
+       dest=/etc/php.d/memcache.ini
+       regexp=";session.save_path="tcp://localhost:11211?persistent=1&weight=1&timeout=1&retry_interval=15"
+       replace="session.save_path="tcp://localhost:11211"
+
+  - name: start memcached 
+  # Memcacheの起動
+    service: name=memcached state=started enabled=yes
+
+  - name: restart mysqld 
+  # MySQLの起動
+    service: name=mysqld state=started
+
+  - name: Create owncloud DB
+  # ownCloudのデータベースを作成する。
+    mysql_db:
+     name=owncloud
+  
+  - name: Set DB User and Password
+    mysql_user:
+     name={{ mysql_db_user }}
+     password={{ mysql_db_password }}
+     priv=owncloud.*:ALL
+
+  - name: Install ownCloud
+  # ownCloudのインストール。
+    yum: name=owncloud state=present enablerepo=isv_ownCloud_community,remi
+
+  - name: Make owncloud data dir
+  # ownCloud用データ領域の作成
+    file: dest=/home/oc/data owner=apache group=apache state=directory
+
+  - name: Change Apache DocumentRoot
+  # Apache DocumentRootの変更。
+    replace: >-
+       dest='/etc/httpd/conf/httpd.conf'
+       regexp='^DocumentRoot .*'
+       replace='DocumentRoot "{{ path_document_root }}/"'
+
+  - name: create self signed certificate
+    shell: |
+       crt_file="/etc/pki/tls/certs/{{ inventory_hostname }}.crt" &&
+       key_file="/etc/pki/tls/private/{{ inventory_hostname }}.key" &&
+       crt_and_key_file="/etc/pki/tls/private/{{ inventory_hostname }}.crt_and_key" &&
+       subject="/C=JP/CN={{ inventory_hostname }}" &&
+       openssl req -new -newkey rsa:2048 -sha1 -x509 -nodes \
+        -set_serial 1 \
+        -days 365 \
+        -subj "$subject" \
+        -out "$crt_file" \
+        -keyout "$key_file" &&
+       cat "$crt_file" "$key_file" >> "$crt_and_key_file" &&
+       chmod 400 "$key_file" "$crt_and_key_file"
+       creates="/etc/pki/tls/certs/{{ inventory_hostname }}.crt"
+
+  - name: change ssl document root
+    replace: >-
+       dest='/etc/httpd/conf.d/ssl.conf'
+       regexp='^#DocumentRoot .*'
+       replace='DocumentRoot "{{ path_document_root }}/"'
+
+  - name: change ssl servername
+    replace: >-
+       dest='/etc/httpd/conf.d/ssl.conf'
+       regexp='^#ServerName .*'
+       replace='ServerName "{{ inventory_hostname }}"'
+
+  - name: change ssl SSLProtocol
+    replace: >-
+       dest='/etc/httpd/conf.d/ssl.conf'
+       regexp='^SSLProtocol .*'
+       replace='SSLProtocol all -SSLv2 -SSLv3'
+
+  - name: change ssl SSLCertificateFile
+    replace: >-
+       dest='/etc/httpd/conf.d/ssl.conf'
+       regexp='^SSLCertificateFile .*'
+       replace='SSLCertificateFile /etc/pki/tls/certs/{{ inventory_hostname }}.crt'
+
+  - name: change ssl SSLCertificateKeyFile
+    replace: >-
+       dest='/etc/httpd/conf.d/ssl.conf'
+       regexp='^SSLCertificateKeyFile .*'
+       replace='SSLCertificateKeyFile /etc/pki/tls/private/{{ inventory_hostname }}.key'
+
+  - name: restart httpd 
+  # Apacheの再起動
+    service: name=httpd state=restarted enabled=yes
+
+  - name: restart mysqld 
+  # MySQLの再起動
+    service: name=mysqld state=restarted enabled=yes
