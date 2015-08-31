@@ -216,7 +216,7 @@
        replace='SSLCertificateKeyFile /etc/pki/tls/private/{{ inventory_hostname }}.key'
 
   - name: copy owncloud.conf"
-   template: src=./owncloud_config.php dest={{ path_document_root }}/config/config.php owner=apache group=apache
+  　template: src=./owncloud_config.php dest={{ path_document_root }}/config/config.php owner=apache group=apache
      
   - name: restart httpd 
   # Apacheの再起動
