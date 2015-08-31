@@ -162,9 +162,6 @@
   # ownCloud用データ領域の作成
     file: dest=/home/oc/data owner=apache group=apache state=directory
 
-  - name: copy owncloud.conf
-  　template: src=./owncloud_config.php dest={{ path_document_root }}/config/config.php owner=apache group=apache
-
   - name: Change Apache DocumentRoot
   # Apache DocumentRootの変更。
     replace: >-
