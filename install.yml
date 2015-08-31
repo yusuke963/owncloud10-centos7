@@ -46,11 +46,16 @@
       - php
       - php-*
 
-  - name: Install LAMP packages
-  # LAMPパッケージをインストール。
+  - name: Install Apache packages
+  # Apache をインストール。
     yum: name=httpd state=present
+
+  - name: Install mod_ssl
+  # mod_ssl をインストール。
     yum: name=mod_ssl state=present
 
+- name: Install LAMP etc packages
+  # その他パッケージをインストール。
     yum: name="{{ item }}" state=present enablerepo=remi
     with_items:
       - php
