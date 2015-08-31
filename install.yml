@@ -48,10 +48,11 @@
 
   - name: Install LAMP packages
   # LAMPパッケージをインストール。
+    yum: name=httpd state=present
+    yum: name=mod_ssl state=present
+
     yum: name="{{ item }}" state=present enablerepo=remi
     with_items:
-      - install httpd-devel
-      - mod_ssl
       - php
       - php-devel
       - php-pdo
