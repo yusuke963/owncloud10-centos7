@@ -11,31 +11,29 @@
    path_document_root: /var/www/html/owncloud
 
   tasks:
-  - name: Install ownCloud reopsitory
-  #CentOS7.x用ownCloud8.2レポジトリのインストール。
-    get_url: url=http://dl.fedoraproject.org/pub/epel/7/$(uname -i)/e/epel-release-7-5.noarch.rpm
-    get_url: url=http://download.owncloud.org/download/repositories/8.2/CentOS_7/ce:8.2.repo dest=/etc/yum.repos.d/
+  - name: Install SCL repository
+    yum install centos-release-scl
 
+  - name: Install ownCloud reopsitory
+  #CentOS7.x用ownCloud9レポジトリのインストール。
+    get_url: url=http://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -O /etc/yum.repos.d/ce:stable.repo
+    
   - name: Install Apache packages
   # Apache をインストール。
     yum: name=httpd state=present
-
-  - name: Install mod_ssl
   # mod_ssl をインストール。
     yum: name=mod_ssl state=present
 
-  - name: Install php packages
-  # PHP5.4をインストール。
+  - name: Install php5.5 packages
+  # PHP5.5をインストール。
     yum: name="{{ item }}" state=present
     with_items:
-      - php
-      - php-mbstring
-      - php-pdo
-      - php-mysql
-      - php-xml
-      - php-gd
-      - php-ldap
-      - php-process
+      - php55
+      - php55-php
+      - php55-php-gd
+      - php55-php-mbstring
+      - php55-php-mysqlnd
+      - php55-php-ldap
       
   - name: Install MariaDB
   # MariaDBをインストール。
