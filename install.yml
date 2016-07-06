@@ -35,6 +35,15 @@
       - php55-php-mysqlnd
       - php55-php-ldap
       
+  - name: Move php.conf & modules
+    command: mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php54.off
+    command: mv /etc/httpd/conf.modules.d/10-php.conf /etc/httpd/conf.modules.d/10-php54.off
+
+  - name: Copy php55.conf & modules
+    command: cp /opt/rh/httpd24/root/etc/httpd/conf.d/php55-php.conf /etc/httpd/conf.d/
+    command: cp /opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-php55-php.conf /etc/httpd/conf.modules.d/
+    command: cp /opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so /etc/httpd/modules/
+  
   - name: Install MariaDB
   # MariaDBをインストール。
     yum: name="{{ item }}" state=present
