@@ -38,6 +38,7 @@
   # PHP5.5をインストール。
     yum: name="{{ item }}" state=present
     with_items:
+      - php
       - php55
       - php55-php
       - php55-php-gd
