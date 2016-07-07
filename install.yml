@@ -49,9 +49,10 @@
   # PHPモジュールの設定
     command: mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php54.off
     command: mv /etc/httpd/conf.modules.d/10-php.conf /etc/httpd/conf.modules.d/10-php54.off
-    command: cp /opt/rh/httpd24/root/etc/httpd/conf.d/php55-php.conf /etc/httpd/conf.d/
-    command: cp /opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-php55-php.conf /etc/httpd/conf.modules.d/
-    command: cp /opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so /etc/httpd/modules/
+   
+  - copy: src=/opt/rh/httpd24/root/etc/httpd/conf.d/php55-php.conf dest=/etc/httpd/conf.d/
+  - copy: src=/opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-php55-php.conf dest=/etc/httpd/conf.modules.d/
+  - copy: src=/opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so dest=/etc/httpd/modules/
 
   - name: Install MariaDB
   # MariaDBをインストール。
@@ -135,14 +136,19 @@
        chmod 400 "$key_file" "$crt_and_key_file"
        creates="/etc/pki/tls/certs/{{ inventory_hostname }}.crt"
        
-  - name: change ssl document root
+  - name: Change ssl document root
     replace: >-
        dest='/etc/httpd/conf.d/ssl.conf'
        regexp='^#DocumentRoot .*'
        replace='DocumentRoot "{{ path_document_root }}/"'
 
   - name: Strict-Transport-Security
-    lineinfile: dest=/etc/httpd/conf.d/ssl.conf insertafter="^\ServerName" line="Header always add Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"" state=present
+    lineinfile:
+       dest='/etc/httpd/conf.d/ssl.conf'
+       insertafter='^#ServerName'
+       line={{ item }}
+    with_items:
+      - 'Header always add Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"'
 
   - name: change ssl servername
     replace: >-
