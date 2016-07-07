@@ -4,27 +4,30 @@
   sudo: yes
 
   vars:
-  # ユーザ名とパスワードは変更可能です。
+  # データベースのユーザ名とパスワード設定（変更可能）
    mysql_db_user: oc_dbadmin
    mysql_db_password: owncloud
    php_timezone: Asia/Tokyo
    path_document_root: /var/www/html/owncloud
-
+   
   tasks:
+  - name: yum update
+    yum: update
+    
   - name: Install SCL repository
-    yum install centos-release-scl
+    yum: install centos-release-scl
 
   - name: Install ownCloud reopsitory
-  #CentOS7.x用ownCloud9レポジトリのインストール。
+  # CentOS7.x用ownCloud9レポジトリのインストール。
     get_url: url=http://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -O /etc/yum.repos.d/ce:stable.repo
     
-  - name: Install Apache packages
-  # Apache をインストール。
-    yum: name=httpd state=present
-  # mod_ssl をインストール。
-    yum: name=mod_ssl state=present
+  - name: Install WEB services
+    yum: name="{{ item }}" state=present
+    with_items:
+      - httpd
+      - mod_ssl
 
-  - name: Install php5.5 packages
+  - name: Install PHP packages
   # PHP5.5をインストール。
     yum: name="{{ item }}" state=present
     with_items:
@@ -35,15 +38,14 @@
       - php55-php-mysqlnd
       - php55-php-ldap
       
-  - name: Move php.conf & modules
+  - name: PHP5.5 setting
+  # PHPモジュールの設定
     command: mv /etc/httpd/conf.d/php.conf /etc/httpd/conf.d/php54.off
     command: mv /etc/httpd/conf.modules.d/10-php.conf /etc/httpd/conf.modules.d/10-php54.off
-
-  - name: Copy php55.conf & modules
     command: cp /opt/rh/httpd24/root/etc/httpd/conf.d/php55-php.conf /etc/httpd/conf.d/
     command: cp /opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-php55-php.conf /etc/httpd/conf.modules.d/
     command: cp /opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so /etc/httpd/modules/
-  
+
   - name: Install MariaDB
   # MariaDBをインストール。
     yum: name="{{ item }}" state=present
@@ -52,12 +54,12 @@
       - mariadb
       - mariadb-libs
       - MySQL-python
-
-  - name: restart mariadb 
+      
+  - name: Start mariadb 
   # MariaDBの起動
     service: name=mariadb state=started
 
-  - name: Create owncloud DB
+  - name: Create owncloud DataBase
   # ownCloudのデータベースを作成する。
     mysql_db:
      name=owncloud
