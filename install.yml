@@ -9,17 +9,24 @@
    mysql_db_password: owncloud
    php_timezone: Asia/Tokyo
    path_document_root: /var/www/html/owncloud
-   
+
+  vars_prompt:
+  - name: yum_update
+    prompt: "Do you accept updates ?"
+    private: no
+    default: Y
+
   tasks:
-  - name: yum update
-    yum: update
-    
+  - name: Yum update packages
+    yum: name=* state=latest
+    when: yum_update == "Y" 
+
   - name: Install SCL repository
-    yum: install centos-release-scl
+    yum: name=centos-release-scl state=present
 
   - name: Install ownCloud reopsitory
-  # CentOS7.x用ownCloud9レポジトリのインストール。
-    get_url: url=http://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo -O /etc/yum.repos.d/ce:stable.repo
+    #CentOS7.x用ownCloud9レポジトリのインストール。
+    get_url: url=http://download.owncloud.org/download/repositories/stable/CentOS_7/ce:stable.repo dest=/etc/yum.repos.d/
     
   - name: Install WEB services
     yum: name="{{ item }}" state=present
@@ -58,6 +65,13 @@
   - name: Start mariadb 
   # MariaDBの起動
     service: name=mariadb state=started
+    
+  - name: Install Memchache packages
+    yum: name="{{ item }}" state=present
+    with_items:
+      - php-pecl-apc
+      - php-pecl-memcache
+      - memcached-devel
 
   - name: Create owncloud DataBase
   # ownCloudのデータベースを作成する。
@@ -158,3 +172,8 @@
   - name: restart mariadb
   # MariaDBの再起動
     service: name=mariadb state=restarted enabled=yes
+
+  - name: start memchache
+  # メモリキャッシュの有効化とサービスの起動
+    service: name=memcached state=started enabled=yes
+    
