@@ -98,8 +98,8 @@
       dest=/etc/php.ini
       regexp="^;date\.timezone ="
       replace="date.timezone = {{ php_timezone }}"
+
   - name: Change php setting 
-  
   # PHPの設定変更
   # change expose_php
     replace: >-
@@ -140,7 +140,10 @@
        dest='/etc/httpd/conf.d/ssl.conf'
        regexp='^#DocumentRoot .*'
        replace='DocumentRoot "{{ path_document_root }}/"'
-       
+
+  - name: Strict-Transport-Security
+    lineinfile: dest=/etc/httpd/conf.d/ssl.conf insertafter="^\ServerName" line="Header always add Strict-Transport-Security "max-age=15768000; includeSubDomains; preload"" state=present
+
   - name: change ssl servername
     replace: >-
        dest='/etc/httpd/conf.d/ssl.conf'
