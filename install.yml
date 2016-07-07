@@ -53,7 +53,7 @@
    
   - copy: src=/opt/rh/httpd24/root/etc/httpd/conf.d/php55-php.conf dest=/etc/httpd/conf.d/
   - copy: src=/opt/rh/httpd24/root/etc/httpd/conf.modules.d/10-php55-php.conf dest=/etc/httpd/conf.modules.d/
-  - copy: src=/opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so dest=/etc/httpd/modules/
+  - copy: src=/opt/rh/httpd24/root/etc/httpd/modules/libphp55-php5.so dest=/etc/httpd/modules/ owner=root group=root mode=655
 
   - name: Install MariaDB
   # MariaDBをインストール。
