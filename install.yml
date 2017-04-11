@@ -88,7 +88,10 @@
 
   - name: Install ownCloud
   # ownCloudのインストール。
-    yum: name=owncloud state=present
+    yum: name="{{ item }}" state=present
+    with_items:
+      - owncloud
+      - owncloud-files
 
   - name: Make owncloud data dir
   # ownCloud用データ領域の作成
