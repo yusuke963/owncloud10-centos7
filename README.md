@@ -7,16 +7,16 @@ Ansible 1.4 or higher and platform.
 #System Requirements
 CentOS7.x Minimal Install
 
-#How to install
-(1) yum install -y git epel-release
-(2) yum makecache
-(3) yum install -y ansible git
-(4) git clone [GitHub URL]
-(5) cd ansible-edi-rhel7/
-(6) ansible-playbook -i host install.yml -vvv 
+#How to install<br>
+(1) yum install -y git epel-release<br>
+(2) yum makecache<br>
+(3) yum install -y ansible git<br>
+(4) git clone [GitHub URL]<br>
+(5) cd ansible-edi-rhel7/<br>
+(6) ansible-playbook -i host install.yml -vvv <br>
 
-#構文チェック 
-ansible-playbook install.yml --syntax-check 
+#構文チェック <br>
+ansible-playbook install.yml --syntax-check <br>
 
-#dry-run 
-ansible-playbook -i host install.yml --check
+#dry-run <br>
+ansible-playbook -i host install.yml --check <br>
