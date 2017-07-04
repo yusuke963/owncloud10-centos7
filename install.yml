@@ -43,20 +43,27 @@
       - httpd
       - mod_ssl
       
-  - name: Install php packages
+  # - name: Install php packages
   # PHP5.4をインストール。
-    yum: name="{{ item }}" state=present
+  #  yum: name="{{ item }}" state=present
+  #  with_items:
+  #    - php
+  #    - php-cli
+  #    - php-common
+  #    - php-gd
+  #    - php-ldap
+  #    - php-mbstring
+  #    - php-pdo
+  #    - php-process
+  #    - php-xml
+  #    - php-mysqlnd
+
+  - name: Install php packages
+    # PHP5.6をインストール
+    yum: name="{{ item }}" state=present enablerepo=remi
     with_items:
+      - remi-php56
       - php
-      - php-cli
-      - php-common
-      - php-gd
-      - php-ldap
-      - php-mbstring
-      - php-pdo
-      - php-process
-      - php-xml
-      - php-mysqlnd
 
   - name: Install MariaDB
   # MariaDBをインストール。
