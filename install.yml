@@ -60,10 +60,16 @@
 
   - name: Install php packages
     # PHP5.6をインストール
-    yum: name="{{ item }}" state=present enablerepo=remi
+    yum: name="{{ item }}" state=present enablerepo=remi-php56
     with_items:
-      - remi-php56
-      - php
+      - php php-opcache
+      - php-devel
+      - php-mbstring
+      - php-mcrypt
+      - php-mysqlnd
+      - php-phpunit-PHPUnit
+      - php-pecl-xdebug
+      - php-pecl-xhprof
 
   - name: Install MariaDB
   # MariaDBをインストール。
