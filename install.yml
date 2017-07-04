@@ -17,12 +17,12 @@
     default: Y
  
   tasks:
-  - name: Yum update packages
+ - name: Yum update packages
     yum: name=* state=latest
     when: yum_update == "Y"
  
-  - name: Disabled SELinux
-    replace: >-
+ - name: Disabled SELinux
+   replace: >-
       dest="/etc/selinux/config"
       regexp="SELINUX=enforcing"
       replace="SELINUX=disabled"
