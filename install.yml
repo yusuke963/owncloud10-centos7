@@ -30,7 +30,19 @@
     with_items:
       - httpd
       - mod_ssl
+      
+  - name: Install php packages
+  # PHP5.4をインストール。
+    yum: name="{{ item }}" state=present
+    with_items:
       - php
+      - php-mbstring
+      - php-pdo
+      - php-mysql
+      - php-xml
+      - php-gd
+      - php-ldap
+      - php-process
 
   - name: Install MariaDB
   # MariaDBをインストール。
