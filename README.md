@@ -1,5 +1,5 @@
-# owncloud9.x-centos7
-Install ownCloud9.x on CentOS7.x
+# owncloud10-centos7.x
+Install ownCloud10 on CentOS7.x
 
 #Requirements
 Ansible 1.4 or higher and platform.
