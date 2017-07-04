@@ -21,11 +21,8 @@
     yum: name=* state=latest
     when: yum_update == "Y" 
 
-  - name: Install SCL repository
-    yum: name=centos-release-scl state=present
-
   - name: Install ownCloud reopsitory
-    #CentOS7.x用ownCloud10レポジトリのインストール。
+   #CentOS7.x用ownCloud10レポジトリのインストール
     get_url: http://download.owncloud.org/download/repositories/10.0/CentOS_7/ce:10.0.repo dest=/etc/yum.repos.d/
     
   - name: Install WEB services
