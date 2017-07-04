@@ -17,27 +17,27 @@
     default: Y
  
   tasks:
- - name: Yum update packages
+  - name: Yum update packages
     yum: name=* state=latest
     when: yum_update == "Y"
  
- - name: Disabled SELinux
-   replace: >-
+  - name: Disabled SELinux
+    replace: >-
       dest="/etc/selinux/config"
       regexp="SELINUX=enforcing"
       replace="SELINUX=disabled"
  
- - name: Install ownCloud reopsitory
+  - name: Install ownCloud reopsitory
     #CentOS7.x用ownCloud10レポジトリのインストール
     get_url: url=http://download.owncloud.org/download/repositories/10.0/CentOS_7/ce:10.0.repo dest=/etc/yum.repos.d/
  
- - name: Install Remi repository
+  - name: Install Remi repository
    # Remiのレポジトリをインストールする
     yum: name={{ item }}
     with_items:
       - http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
     
- - name: Install WEB services
+  - name: Install WEB services
     yum: name="{{ item }}" state=present
     with_items:
       - httpd
